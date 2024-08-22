@@ -12,6 +12,8 @@
 
 // Define pins for the MCP4822 DAC
 #define DAC_CS PB10
+// The following are for the SPI interface, it's for reference and not used in the code.
+// The SPI.h library already handles this for us.
 #define DAC_SCK PA5
 #define DAC_MOSI PA7
 
@@ -28,7 +30,7 @@ const float FREQUENCY = 2000.0;
 PWMDac pwm_dac(PWM_TIMER, CH1_PWM1, CH1_PWM2, CH2_PWM1, CH2_PWM2);
 
 // Create an MCP4822 object for the DAC
-MCP4822 dac(DAC_CS, DAC_SCK, DAC_MOSI);
+MCP4822 dac(DAC_CS);
 
 // Create an instance of WaveGenerator
 WaveGenerator waveGen(TABLE_SIZE, SAMPLE_RATE, FREQUENCY);
