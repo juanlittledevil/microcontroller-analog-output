@@ -44,9 +44,6 @@ void PWMDac::Init() {
   // Resume the timer to start PWM.
   timer_->resume();
 
-  // Initialize the TIMER for interrupt
-  TIMER_Init();
-
   // Debugging output to verify configuration.
   Serial.print("Prescale Factor: ");
   Serial.println(timer_->getPrescaleFactor());
@@ -69,54 +66,4 @@ void PWMDac::Write(int index, uint16_t value) {
     uint8_t l_byte2 = (data_[1] & 0x1FC) >> 2;
     analogWrite(pin4_, l_byte2);
   }
-}
-
-void PWMDac::TIMER_Init() {
-  // Enable the timer clock based on the timer instance.
-  switch (reinterpret_cast<uintptr_t>(timerInstance_)) {
-    case TIM2_BASE:
-      __HAL_RCC_TIM2_CLK_ENABLE();
-      break;
-    case TIM3_BASE:
-      __HAL_RCC_TIM3_CLK_ENABLE();
-      break;
-    case TIM1_BASE:
-      __HAL_RCC_TIM1_CLK_ENABLE();
-      break;
-    // Add more cases as needed for other timers.
-    default:
-      // Handle error or unsupported timer.
-      return;
-  }
-
-  TIM_HandleTypeDef htim;
-  htim.Instance = timerInstance_;
-  htim.Init.Prescaler = 72 - 1; // Assuming 72 MHz clock, prescaler to 1 MHz
-  htim.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim.Init.Period = 100 - 1; // 10 kHz update rate
-  htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  HAL_TIM_Base_Init(&htim);
-
-  HAL_TIM_Base_Start_IT(&htim);
-
-  // Set the priority and enable the IRQ based on the timer instance.
-  IRQn_Type irq;
-  switch (reinterpret_cast<uintptr_t>(timerInstance_)) {
-    case TIM2_BASE:
-      irq = TIM2_IRQn;
-      break;
-    case TIM3_BASE:
-      irq = TIM3_IRQn;
-      break;
-    case TIM1_BASE:
-      irq = TIM1_UP_IRQn;
-      break;
-    // Add more cases as needed for other timers.
-    default:
-      // Handle error or unsupported timer.
-      return;
-  }
-
-  HAL_NVIC_SetPriority(irq, 0, 0);
-  HAL_NVIC_EnableIRQ(irq);
 }

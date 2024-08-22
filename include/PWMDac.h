@@ -20,8 +20,6 @@ class PWMDac {
   TIM_TypeDef* timerInstance_;
   uint8_t pin1_, pin2_, pin3_, pin4_;
   uint16_t data_[2];
-
-  void TIMER_Init();
 };
 
 #endif  // PWM_DAC_H_

@@ -19,8 +19,9 @@
 #define FREQ_KNOB PB1
 
 // Define constants
-const int TABLE_SIZE = 2048; // Updated table size
+const int TABLE_SIZE = 2048;
 const int SAMPLE_RATE = 96000;
+// const int SAMPLE_RATE = 44100;
 const float FREQUENCY = 2000.0;
 
 // Create a PWMDac object for each combination of timer and pins
@@ -35,8 +36,9 @@ WaveGenerator waveGen(TABLE_SIZE, SAMPLE_RATE, FREQUENCY);
 // Variables to track time for sample updates
 unsigned long lastSampleTime = 0;
 unsigned long sampleInterval;
+unsigned long sampleCount = 0;
 
-TIM_HandleTypeDef htim2;
+float mapFloat(float x, float in_min, float in_max, float out_min, float out_max);
 
 void setup() {
   // Initialize the serial monitor
@@ -61,75 +63,69 @@ void setup() {
   waveGen.init();
 
   // Calculate the sample interval based on the sample rate
-  sampleInterval = 1000000 / waveGen.getSampleRate();
+  // sampleInterval = 1000000 / waveGen.getSampleRate();
+  sampleInterval = 1000000 / SAMPLE_RATE;
   Serial.println("WaveGenerator initialized.");
-
-  // Initialize TIM2
-  __HAL_RCC_TIM2_CLK_ENABLE();
-
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 72 - 1; // Assuming 72 MHz clock, prescaler to 1 MHz
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 100 - 1; // 10 kHz update rate
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  HAL_TIM_Base_Init(&htim2);
-
-  HAL_TIM_Base_Start_IT(&htim2);
-
-  HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(TIM2_IRQn);
 }
 
 void loop() {
   // Read the knob value (10-bit ADC value)
   int knobValue = analogRead(FREQ_KNOB);
 
-  // Map the knob value to the frequency range (e.g., .1 Hz to 1500 Hz)
-  float frequency = map(knobValue, 0, 1023, 1, 20000);
+  // Map the knob value to the frequency range (e.g., .1 Hz to 500 Hz)
+  // float frequency = map(knobValue, 0, 1023, .1, 5000);
+  float frequency = mapFloat(knobValue, 0, 1023, 0.1, 5000.0);
   waveGen.setFrequency(frequency);
 
-  // Print debug information
+  // Calculate the sample interval based on the frequency
+  sampleInterval = 1000000 / frequency; // in microseconds
+
+  // Debugging information
+  Serial.print("Knob Value: ");
+  Serial.println(knobValue);
   Serial.print("Frequency: ");
   Serial.println(frequency);
   Serial.print("Sample Interval: ");
   Serial.println(sampleInterval);
-  Serial.print("Phase Increment: ");
-  Serial.println(waveGen.getPhaseIncrement());
 
+  // Additional debugging to check the timing
+  unsigned long startTime = micros();
+  delayMicroseconds(sampleInterval);
+  unsigned long endTime = micros();
+  Serial.print("Actual Interval: ");
+  Serial.println(endTime - startTime);
 
   // Map the knob value to the 12-bit DAC range (0-4095)
   uint16_t dacValue = map(knobValue, 0, 1023, 0, 4095);
   uint16_t pwmValue = map(knobValue, 0, 1023, 0, 16383);
   dac.Write(1, dacValue);
   pwm_dac.Write(1, pwmValue);
+
+  // Check if it's time to update the sample
+  unsigned long currentTime = micros();
+  if (currentTime - lastSampleTime >= sampleInterval) {
+    lastSampleTime += sampleInterval;
+
+    sampleCount++;
+    Serial.print("Sample Count: ");
+    Serial.println(sampleCount);
+    Serial.print("Current Time: ");
+    Serial.println(currentTime);
+
+    // Get the waveform sample from the WaveGenerator
+    uint16_t sample = waveGen.getSample();
+
+    // Debugging information
+    Serial.print("Sample: ");
+    Serial.println(sample);
+
+
+    // Write the mapped values to the DAC and PWM DAC
+    dac.Write(0, sample);
+    pwm_dac.Write(0, map(sample, 0, 4095, 0, 16383));
+  }
 }
 
-//   // Check if it's time to update the sample
-//   unsigned long currentTime = micros();
-//   if (currentTime - lastSampleTime >= sampleInterval) {
-//     lastSampleTime = currentTime;
-
-//     // Get the waveform sample from the WaveGenerator
-//     uint16_t sample = waveGen.getSample();
-
-//     // Write the mapped values to the DAC and PWM DAC
-//     dac.Write(0, sample);
-//     pwm_dac.Write(0, map(sample, 0, 4095, 0, 16383));
-//   }
-// }
-
-// TIM2 interrupt handler
-extern "C" void TIM2_IRQHandler(void) {
-  if (__HAL_TIM_GET_FLAG(&htim2, TIM_FLAG_UPDATE) != RESET) {
-    if (__HAL_TIM_GET_IT_SOURCE(&htim2, TIM_IT_UPDATE) != RESET) {
-      __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
-
-      // Get the waveform sample from the WaveGenerator
-      uint16_t sample = waveGen.getSample();
-
-      // Write the mapped values to the DAC and PWM DAC
-      dac.Write(0, sample);
-      pwm_dac.Write(0, map(sample, 0, 4095, 0, 16383));
-    }
-  }
+float mapFloat(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
