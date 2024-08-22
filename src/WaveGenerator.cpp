@@ -7,9 +7,7 @@ WaveGenerator::WaveGenerator(int tableSize, int sampleRate, float frequency)
 
 WaveGenerator::~WaveGenerator() {}
 
-void WaveGenerator::init() {
-  // No need to initialize a wave table anymore
-}
+void WaveGenerator::init() {}
 
 uint16_t WaveGenerator::getSample() {
   // Generate a sine wave sample in real-time
@@ -19,7 +17,8 @@ uint16_t WaveGenerator::getSample() {
     currentIndex_ -= 2.0 * M_PI;
   }
   // Convert the sample to a 12-bit value (0-4095)
-  return static_cast<uint16_t>((sample + 1.0) * 2047.5);
+  uint16_t outputSample = static_cast<uint16_t>((sample + 1.0) * 2047.5);
+  return outputSample;
 }
 
 void WaveGenerator::setFrequency(float frequency) {
