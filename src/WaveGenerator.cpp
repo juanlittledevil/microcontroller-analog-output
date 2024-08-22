@@ -80,3 +80,7 @@ void WaveGenerator::setFrequency(float frequency) {
 int WaveGenerator::getSampleRate() const {
   return sampleRate_;
 }
+
+float WaveGenerator::getPhaseIncrement() const {
+  return phaseIncrement_;
+}

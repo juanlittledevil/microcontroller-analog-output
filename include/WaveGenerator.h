@@ -12,6 +12,7 @@ class WaveGenerator {
   uint16_t getSample();
   void setFrequency(float frequency);
   int getSampleRate() const;
+  float getPhaseIncrement() const;
 
  private:
   int tableSize_;
