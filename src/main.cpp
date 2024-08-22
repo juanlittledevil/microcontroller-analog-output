@@ -36,7 +36,6 @@ WaveGenerator waveGen(TABLE_SIZE, SAMPLE_RATE, FREQUENCY);
 // Variables to track time for sample updates
 unsigned long lastSampleTime = 0;
 unsigned long sampleInterval;
-unsigned long sampleCount = 0;
 
 float mapFloat(float x, float in_min, float in_max, float out_min, float out_max);
 
@@ -45,7 +44,6 @@ void setup() {
   delay(1000);
   Serial.begin(115200);
   delay(1000);
-  Serial.println("Wave Generator Test");
 
   // Initialize each PWMDac object
   pwm_dac.Init();
@@ -63,9 +61,9 @@ void setup() {
   waveGen.init();
 
   // Calculate the sample interval based on the sample rate
-  // sampleInterval = 1000000 / waveGen.getSampleRate();
-  sampleInterval = 1000000 / SAMPLE_RATE;
-  Serial.println("WaveGenerator initialized.");
+  sampleInterval = 1000000 / SAMPLE_RATE; // in microseconds
+
+  Serial.println("Setup complete.");
 }
 
 void loop() {
@@ -80,21 +78,6 @@ void loop() {
   // Calculate the sample interval based on the frequency
   sampleInterval = 1000000 / frequency; // in microseconds
 
-  // Debugging information
-  Serial.print("Knob Value: ");
-  Serial.println(knobValue);
-  Serial.print("Frequency: ");
-  Serial.println(frequency);
-  Serial.print("Sample Interval: ");
-  Serial.println(sampleInterval);
-
-  // Additional debugging to check the timing
-  unsigned long startTime = micros();
-  delayMicroseconds(sampleInterval);
-  unsigned long endTime = micros();
-  Serial.print("Actual Interval: ");
-  Serial.println(endTime - startTime);
-
   // Map the knob value to the 12-bit DAC range (0-4095)
   uint16_t dacValue = map(knobValue, 0, 1023, 0, 4095);
   uint16_t pwmValue = map(knobValue, 0, 1023, 0, 16383);
@@ -106,19 +89,8 @@ void loop() {
   if (currentTime - lastSampleTime >= sampleInterval) {
     lastSampleTime += sampleInterval;
 
-    sampleCount++;
-    Serial.print("Sample Count: ");
-    Serial.println(sampleCount);
-    Serial.print("Current Time: ");
-    Serial.println(currentTime);
-
     // Get the waveform sample from the WaveGenerator
     uint16_t sample = waveGen.getSample();
-
-    // Debugging information
-    Serial.print("Sample: ");
-    Serial.println(sample);
-
 
     // Write the mapped values to the DAC and PWM DAC
     dac.Write(0, sample);
