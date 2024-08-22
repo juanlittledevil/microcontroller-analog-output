@@ -2,6 +2,7 @@
 #define WAVE_GENERATOR_H_
 
 #include <Arduino.h>
+#include <cmath> // Include cmath for sin function
 
 class WaveGenerator {
  public:
@@ -18,9 +19,7 @@ class WaveGenerator {
   int tableSize_;
   int sampleRate_;
   float frequency_;
-  uint16_t* waveTable_;
   float currentIndex_;
   float phaseIncrement_;
 };
-
 #endif  // WAVE_GENERATOR_H_
