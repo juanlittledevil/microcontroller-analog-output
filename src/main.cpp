@@ -23,7 +23,6 @@
 // Define constants
 const int TABLE_SIZE = 2048;
 const int SAMPLE_RATE = 96000;
-// const int SAMPLE_RATE = 44100;
 const float FREQUENCY = 2000.0;
 
 // Create a PWMDac object for each combination of timer and pins
@@ -76,9 +75,6 @@ void loop() {
   // float frequency = map(knobValue, 0, 1023, .1, 5000);
   float frequency = mapFloat(knobValue, 0, 1023, 0.1, 5000.0);
   waveGen.setFrequency(frequency);
-
-  // Calculate the sample interval based on the frequency
-  sampleInterval = 1000000 / frequency; // in microseconds
 
   // Map the knob value to the 12-bit DAC range (0-4095)
   uint16_t dacValue = map(knobValue, 0, 1023, 0, 4095);
