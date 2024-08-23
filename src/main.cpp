@@ -70,7 +70,6 @@ void loop() {
   int knobValue = analogRead(FREQ_KNOB);
 
   // Map the knob value to the frequency range (e.g., .1 Hz to 500 Hz)
-  // float frequency = map(knobValue, 0, 1023, .1, 5000);
   float frequency = mapFloat(knobValue, 0, 1023, 0.1, 5000.0);
   waveGen.setFrequency(frequency);
 

@@ -43,15 +43,6 @@ void PWMDac::Init() {
 
   // Resume the timer to start PWM.
   timer_->resume();
-
-  // Debugging output to verify configuration.
-  Serial.print("Prescale Factor: ");
-  Serial.println(timer_->getPrescaleFactor());
-  Serial.print("Overflow: ");
-  Serial.println(timer_->getOverflow(HERTZ_FORMAT));
-  Serial.print("Timer Clock Frequency: ");
-  Serial.println(timer_->getTimerClkFreq());
-  Serial.println("PWM DAC initialized.");
 }
 
 void PWMDac::Write(int index, uint16_t value) {
