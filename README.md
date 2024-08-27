@@ -11,6 +11,8 @@ But if cost is a factor, we can still get away with a fairly good output using P
 
 Make sure to check out my YouTube channel and blog (www.scruffycatstudios.com) for the post relating to this topic.
 
+https://youtu.be/BtJqGxOrmBY
+
 If you want to follow along you'll need:
 
 1. Visual Studio Code. I am very much not a fan of the Arduino IDE so all my examples are done in VSCode and PlatformIO.
